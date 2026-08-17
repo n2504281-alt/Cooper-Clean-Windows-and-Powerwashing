@@ -1,5 +1,5 @@
 /**
- * COOPER CLEAN WINDOWS & POWERWASHING - INTERACTIVE LOGIC (V2 OVERHAUL)
+ * COOPER CLEAN WINDOWS & POWERWASHING - INTERACTIVE LOGIC (V2 RESPONSIVE & UX POLISH)
  * Location: Tyler, Texas
  */
 
@@ -36,27 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ------------------------------------------------------------------------
-     2. MOBILE MENU TOGGLE
+     2. MOBILE MENU TOGGLE WITH SMOOTH ANIMATION & ACCESSIBILITY
      ------------------------------------------------------------------------ */
   const mobileToggle = document.querySelector('.mobile-nav-toggle');
   const navMenu = document.querySelector('.nav-menu');
+  const hamburgerIcon = document.querySelector('.hamburger-icon');
+  const closeIcon = document.querySelector('.close-icon');
 
   if (mobileToggle && navMenu) {
     mobileToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('active');
-      const isExpanded = navMenu.classList.contains('active');
-      mobileToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      const isActive = navMenu.classList.toggle('active');
+      mobileToggle.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+      
+      if (hamburgerIcon && closeIcon) {
+        hamburgerIcon.style.display = isActive ? 'none' : 'block';
+        closeIcon.style.display = isActive ? 'block' : 'none';
+      }
     });
 
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         navMenu.classList.remove('active');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon && closeIcon) {
+          hamburgerIcon.style.display = 'block';
+          closeIcon.style.display = 'none';
+        }
       });
     });
   }
 
   /* ------------------------------------------------------------------------
-     3. TESTIMONIAL CAROUSEL SLIDER
+     3. TESTIMONIAL CAROUSEL SLIDER WITH TOUCH SWIPE & PEEK SUPPORT
      ------------------------------------------------------------------------ */
   const track = document.querySelector('.carousel-track');
   const cards = document.querySelectorAll('.testimonial-card');
@@ -67,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (track && cards.length > 0) {
     let currentIndex = 0;
     let autoSlideTimer = null;
+    let touchStartX = 0;
+    let touchEndX = 0;
 
     const getVisibleCards = () => {
       if (window.innerWidth <= 768) return 1;
@@ -76,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const maxIndex = () => Math.max(0, cards.length - getVisibleCards());
 
-    // Create Dots
     const renderDots = () => {
       if (!dotsContainer) return;
       dotsContainer.innerHTML = '';
@@ -93,12 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateSliderPosition = () => {
       if (cards[0]) {
         const cardWidth = cards[0].getBoundingClientRect().width;
-        const gap = 32; // 2rem gap
+        const gap = 24; // 1.5rem gap
         const amountToMove = currentIndex * (cardWidth + gap);
         track.style.transform = `translateX(-${amountToMove}px)`;
       }
 
-      // Update Dots
       const dots = document.querySelectorAll('.dot');
       dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === currentIndex);
@@ -130,6 +141,27 @@ document.addEventListener('DOMContentLoaded', () => {
       resetAutoSlide();
     });
 
+    // Touch Swipe Listeners for Mobile
+    track.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+
+    const handleSwipe = () => {
+      const swipeDistance = touchEndX - touchStartX;
+      if (swipeDistance < -40) {
+        nextSlide();
+        resetAutoSlide();
+      } else if (swipeDistance > 40) {
+        prevSlide();
+        resetAutoSlide();
+      }
+    };
+
     const startAutoSlide = () => {
       autoSlideTimer = setInterval(nextSlide, 5000);
     };
@@ -143,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
       startAutoSlide();
     };
 
-    // Pause on hover
     track.addEventListener('mouseenter', stopAutoSlide);
     track.addEventListener('mouseleave', startAutoSlide);
 
@@ -158,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     4. BEFORE / AFTER INTERACTIVE SLIDER
+     4. BEFORE / AFTER INTERACTIVE SLIDER WITH TOUCH DRAG
      ------------------------------------------------------------------------ */
   const container = document.querySelector('.ba-slider-container');
   const beforeImg = document.querySelector('.ba-before');
@@ -180,12 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const onPointerDown = (e) => {
       isDragging = true;
-      setSliderPosition(e.clientX || e.touches[0].clientX);
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      setSliderPosition(clientX);
     };
 
     const onPointerMove = (e) => {
       if (!isDragging) return;
-      setSliderPosition(e.clientX || (e.touches && e.touches[0].clientX));
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      setSliderPosition(clientX);
     };
 
     const onPointerUp = () => {
@@ -202,7 +235,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     5. PROCESS ANIMATED LINE PROGRESS ON SCROLL
+     5. BACK TO TOP BUTTON WITH SCROLL VISIBILITY
+     ------------------------------------------------------------------------ */
+  const backToTopBtn = document.getElementById('backToTop');
+
+  if (backToTopBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 450) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     6. PROCESS ANIMATED LINE PROGRESS ON SCROLL
      ------------------------------------------------------------------------ */
   const processSection = document.querySelector('.process-section');
   const progressBar = document.querySelector('.process-line-progress');
@@ -220,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     6. STAT COUNTER ANIMATION
+     7. STAT COUNTER ANIMATION (SINGLE RUN)
      ------------------------------------------------------------------------ */
   const statNumbers = document.querySelectorAll('.counter-num');
   let animated = false;
@@ -230,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const target = parseFloat(counter.getAttribute('data-target') || '0');
       const isDecimal = target % 1 !== 0;
       let current = 0;
-      const duration = 1500;
+      const duration = 1200;
       const stepTime = 20;
       const steps = duration / stepTime;
       const increment = target / steps;
@@ -262,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     7. FAQ ACCORDION
+     8. FAQ ACCORDION
      ------------------------------------------------------------------------ */
   const faqButtons = document.querySelectorAll('.faq-button');
 
@@ -286,7 +341,40 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ------------------------------------------------------------------------
-     8. QUOTE FORM SUBMISSION & TOAST
+     9. SCROLL REVEAL ANIMATIONS FOR SECTIONS
+     ------------------------------------------------------------------------ */
+  const revealElements = document.querySelectorAll('section:not(.hero)');
+  
+  revealElements.forEach(el => el.classList.add('reveal-section'));
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  /* ------------------------------------------------------------------------
+     10. DESKTOP HERO PARALLAX EFFECT
+     ------------------------------------------------------------------------ */
+  const heroBg = document.querySelector('.hero-bg');
+  
+  if (heroBg) {
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth > 1024) {
+        const scrolled = window.scrollY;
+        if (scrolled < 800) {
+          heroBg.style.transform = `translateY(${scrolled * 0.25}px) scale(1.02)`;
+        }
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     11. QUOTE FORM SUBMISSION & TOAST
      ------------------------------------------------------------------------ */
   const quoteForm = document.getElementById('quoteForm');
   const toastSuccess = document.getElementById('toastSuccess');
