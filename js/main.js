@@ -1,11 +1,11 @@
 /**
- * COOPER CLEAN WINDOWS & POWERWASHING - INTERACTIVE LOGIC
+ * COOPER CLEAN WINDOWS & POWERWASHING - INTERACTIVE LOGIC (V2 OVERHAUL)
  * Location: Tyler, Texas
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ------------------------------------------------------------------------
-     1. STICKY HEADER & ACTIVE NAV LINKS
+     1. STICKY HEADER & SCROLL HIGHLIGHTS
      ------------------------------------------------------------------------ */
   const header = document.querySelector('.site-header');
   const navLinks = document.querySelectorAll('.nav-link');
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
       header?.classList.remove('scrolled');
     }
 
-    // Active Section Highlight
     let current = '';
     sections.forEach(section => {
       const sectionTop = section.offsetTop - 120;
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ------------------------------------------------------------------------
-     2. MOBILE NAVIGATION MENU TOGGLE
+     2. MOBILE MENU TOGGLE
      ------------------------------------------------------------------------ */
   const mobileToggle = document.querySelector('.mobile-nav-toggle');
   const navMenu = document.querySelector('.nav-menu');
@@ -49,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     });
 
-    // Close menu when clicking link
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         navMenu.classList.remove('active');
@@ -58,7 +56,109 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     3. BEFORE / AFTER INTERACTIVE SLIDER
+     3. TESTIMONIAL CAROUSEL SLIDER
+     ------------------------------------------------------------------------ */
+  const track = document.querySelector('.carousel-track');
+  const cards = document.querySelectorAll('.testimonial-card');
+  const prevBtn = document.querySelector('.carousel-prev');
+  const nextBtn = document.querySelector('.carousel-next');
+  const dotsContainer = document.querySelector('.carousel-dots');
+
+  if (track && cards.length > 0) {
+    let currentIndex = 0;
+    let autoSlideTimer = null;
+
+    const getVisibleCards = () => {
+      if (window.innerWidth <= 768) return 1;
+      if (window.innerWidth <= 1024) return 2;
+      return 3;
+    };
+
+    const maxIndex = () => Math.max(0, cards.length - getVisibleCards());
+
+    // Create Dots
+    const renderDots = () => {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      const totalDots = maxIndex() + 1;
+      for (let i = 0; i < totalDots; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (i === currentIndex) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+      }
+    };
+
+    const updateSliderPosition = () => {
+      if (cards[0]) {
+        const cardWidth = cards[0].getBoundingClientRect().width;
+        const gap = 32; // 2rem gap
+        const amountToMove = currentIndex * (cardWidth + gap);
+        track.style.transform = `translateX(-${amountToMove}px)`;
+      }
+
+      // Update Dots
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentIndex);
+      });
+    };
+
+    const goToSlide = (index) => {
+      currentIndex = index;
+      if (currentIndex > maxIndex()) currentIndex = 0;
+      if (currentIndex < 0) currentIndex = maxIndex();
+      updateSliderPosition();
+    };
+
+    const nextSlide = () => {
+      goToSlide(currentIndex + 1);
+    };
+
+    const prevSlide = () => {
+      goToSlide(currentIndex - 1);
+    };
+
+    nextBtn?.addEventListener('click', () => {
+      nextSlide();
+      resetAutoSlide();
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      prevSlide();
+      resetAutoSlide();
+    });
+
+    const startAutoSlide = () => {
+      autoSlideTimer = setInterval(nextSlide, 5000);
+    };
+
+    const stopAutoSlide = () => {
+      if (autoSlideTimer) clearInterval(autoSlideTimer);
+    };
+
+    const resetAutoSlide = () => {
+      stopAutoSlide();
+      startAutoSlide();
+    };
+
+    // Pause on hover
+    track.addEventListener('mouseenter', stopAutoSlide);
+    track.addEventListener('mouseleave', startAutoSlide);
+
+    renderDots();
+    updateSliderPosition();
+    startAutoSlide();
+
+    window.addEventListener('resize', () => {
+      renderDots();
+      goToSlide(Math.min(currentIndex, maxIndex()));
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     4. BEFORE / AFTER INTERACTIVE SLIDER
      ------------------------------------------------------------------------ */
   const container = document.querySelector('.ba-slider-container');
   const beforeImg = document.querySelector('.ba-before');
@@ -102,7 +202,67 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------------------------------------------------
-     4. FAQ ACCORDION
+     5. PROCESS ANIMATED LINE PROGRESS ON SCROLL
+     ------------------------------------------------------------------------ */
+  const processSection = document.querySelector('.process-section');
+  const progressBar = document.querySelector('.process-line-progress');
+
+  if (processSection && progressBar) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          progressBar.style.width = '100%';
+        }
+      });
+    }, { threshold: 0.3 });
+
+    observer.observe(processSection);
+  }
+
+  /* ------------------------------------------------------------------------
+     6. STAT COUNTER ANIMATION
+     ------------------------------------------------------------------------ */
+  const statNumbers = document.querySelectorAll('.counter-num');
+  let animated = false;
+
+  const animateCounters = () => {
+    statNumbers.forEach(counter => {
+      const target = parseFloat(counter.getAttribute('data-target') || '0');
+      const isDecimal = target % 1 !== 0;
+      let current = 0;
+      const duration = 1500;
+      const stepTime = 20;
+      const steps = duration / stepTime;
+      const increment = target / steps;
+
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          counter.textContent = isDecimal ? target.toFixed(1) : Math.floor(target).toString();
+          clearInterval(timer);
+        } else {
+          counter.textContent = isDecimal ? current.toFixed(1) : Math.floor(current).toString();
+        }
+      }, stepTime);
+    });
+  };
+
+  const counterSection = document.querySelector('.google-reviews-section');
+  if (counterSection) {
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !animated) {
+          animated = true;
+          animateCounters();
+        }
+      });
+    }, { threshold: 0.3 });
+
+    counterObserver.observe(counterSection);
+  }
+
+  /* ------------------------------------------------------------------------
+     7. FAQ ACCORDION
      ------------------------------------------------------------------------ */
   const faqButtons = document.querySelectorAll('.faq-button');
 
@@ -112,14 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const answer = item.querySelector('.faq-answer');
       const isActive = item.classList.contains('active');
 
-      // Close all other items
       document.querySelectorAll('.faq-item').forEach(otherItem => {
         otherItem.classList.remove('active');
         const otherAnswer = otherItem.querySelector('.faq-answer');
         if (otherAnswer) otherAnswer.style.maxHeight = null;
       });
 
-      // Toggle current item
       if (!isActive && answer) {
         item.classList.add('active');
         answer.style.maxHeight = answer.scrollHeight + 'px';
@@ -128,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ------------------------------------------------------------------------
-     5. CONTACT FORM VALIDATION & TOAST
+     8. QUOTE FORM SUBMISSION & TOAST
      ------------------------------------------------------------------------ */
   const quoteForm = document.getElementById('quoteForm');
   const toastSuccess = document.getElementById('toastSuccess');
@@ -142,11 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const service = document.getElementById('serviceNeeded')?.value;
 
       if (!name || !phone || !service) {
-        alert('Please fill out all required fields (Name, Phone, and Service Needed).');
+        alert('Please fill out all required fields.');
         return;
       }
 
-      // Show success toast feedback
       if (toastSuccess) {
         toastSuccess.style.display = 'block';
         toastSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
