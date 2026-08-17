@@ -1691,14 +1691,28 @@ button, input, select, textarea {
 
 @media (max-width: 900px) {
   .contact-section {
-    padding: 4.25rem 0;
+    padding: 3.5rem 0;
+    overflow: hidden;
   }
   .contact-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .contact-grid > div {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .quote-card {
-    padding: 1.75rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding: 1.75rem 1.25rem;
   }
 }
 
@@ -2461,10 +2475,23 @@ button, input, select, textarea {
     display: none;
   }
   .contact-business-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1.125rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+  }
+  .quote-card {
+    padding: 1.5rem 1.125rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
   }
   .hours-row {
     padding: 0.625rem 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   .hours-day, .hours-time {
     font-size: 0.84375rem;
@@ -2472,9 +2499,51 @@ button, input, select, textarea {
 }
 
 @media (max-width: 480px) {
+  .contact-section .container {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+  .contact-business-card {
+    padding: 1.25rem 0.875rem;
+    border-radius: var(--radius-md);
+  }
+  .quote-card {
+    padding: 1.25rem 0.875rem;
+    border-radius: var(--radius-md);
+  }
+  .contact-card-brand .brand-name {
+    font-size: 1.2rem;
+  }
   .contact-card-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .status-badge {
+    align-self: flex-start;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.71875rem;
+    max-width: 100%;
+  }
+  .status-badge-time {
+    display: inline-block;
+  }
+  .hours-row {
+    padding: 0.55rem 0.65rem;
+    gap: 0.35rem;
+  }
+  .hours-day {
+    font-size: 0.8125rem;
+  }
+  .hours-time {
+    font-size: 0.8125rem;
+  }
+  .btn-call-cta {
+    font-size: 0.875rem;
+    padding: 0.75rem 0.75rem;
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
   }
 }
 
