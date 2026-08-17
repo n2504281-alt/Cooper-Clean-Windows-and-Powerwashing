@@ -404,4 +404,117 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 7000);
     });
   }
+
+  /* ------------------------------------------------------------------------
+     12. VERIFIED BUSINESS HOURS DYNAMIC STATUS & VIEWPORT ANIMATIONS
+     ------------------------------------------------------------------------ */
+  const BUSINESS_SCHEDULE = [
+    { dayIndex: 0, dayName: 'Sunday', open: 15, close: 17, openStr: '3:00 PM', closeStr: '5:00 PM', shortHours: '3 PM–5 PM', fullHours: '3:00 PM – 5:00 PM' },
+    { dayIndex: 1, dayName: 'Monday', open: 6, close: 18, openStr: '6:00 AM', closeStr: '6:00 PM', shortHours: '6 AM–6 PM', fullHours: '6:00 AM – 6:00 PM' },
+    { dayIndex: 2, dayName: 'Tuesday', open: 6, close: 18, openStr: '6:00 AM', closeStr: '6:00 PM', shortHours: '6 AM–6 PM', fullHours: '6:00 AM – 6:00 PM' },
+    { dayIndex: 3, dayName: 'Wednesday', open: 6, close: 18, openStr: '6:00 AM', closeStr: '6:00 PM', shortHours: '6 AM–6 PM', fullHours: '6:00 AM – 6:00 PM' },
+    { dayIndex: 4, dayName: 'Thursday', open: 6, close: 18, openStr: '6:00 AM', closeStr: '6:00 PM', shortHours: '6 AM–6 PM', fullHours: '6:00 AM – 6:00 PM' },
+    { dayIndex: 5, dayName: 'Friday', open: 6, close: 17, openStr: '6:00 AM', closeStr: '5:00 PM', shortHours: '6 AM–5 PM', fullHours: '6:00 AM – 5:00 PM' },
+    { dayIndex: 6, dayName: 'Saturday', open: 6, close: 18, openStr: '6:00 AM', closeStr: '6:00 PM', shortHours: '6 AM–6 PM', fullHours: '6:00 AM – 6:00 PM' }
+  ];
+
+  function getBusinessHoursStatus(now = new Date()) {
+    const currentDay = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const todaySched = BUSINESS_SCHEDULE[currentDay];
+    
+    const openMinutes = todaySched.open * 60;
+    const closeMinutes = todaySched.close * 60;
+
+    if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
+      return {
+        isOpen: true,
+        statusText: 'OPEN TODAY',
+        timeText: todaySched.fullHours,
+        badgeClass: 'status-open'
+      };
+    } else {
+      let nextOpeningText = '';
+      if (currentMinutes < openMinutes) {
+        nextOpeningText = `Opens today at ${todaySched.openStr}`;
+      } else {
+        let daysAhead = 1;
+        while (daysAhead <= 7) {
+          const nextDayIndex = (currentDay + daysAhead) % 7;
+          const nextSched = BUSINESS_SCHEDULE[nextDayIndex];
+          if (nextSched.open !== null) {
+            if (daysAhead === 1) {
+              nextOpeningText = `Opens tomorrow at ${nextSched.openStr}`;
+            } else {
+              const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+              nextOpeningText = `Opens ${shortDays[nextDayIndex]} at ${nextSched.openStr}`;
+            }
+            break;
+          }
+          daysAhead++;
+        }
+      }
+      return {
+        isOpen: false,
+        statusText: 'CLOSED NOW',
+        timeText: nextOpeningText,
+        badgeClass: 'status-closed'
+      };
+    }
+  }
+
+  function updateHoursUI() {
+    const now = new Date();
+    const status = getBusinessHoursStatus(now);
+    const currentDayIndex = now.getDay();
+
+    // 1. Top Bar Status Update
+    const topBarStatus = document.getElementById('topBarStatus');
+    if (topBarStatus) {
+      topBarStatus.className = `top-bar-item top-bar-hours-status ${status.badgeClass}`;
+      topBarStatus.innerHTML = `
+        <span class="status-indicator-dot">●</span>
+        <span class="status-text-inline">${status.statusText}: ${status.timeText}</span>
+      `;
+    }
+
+    // 2. Card Status Badges Update
+    const statusBadges = document.querySelectorAll('[data-status-badge]');
+    statusBadges.forEach(badge => {
+      badge.className = `status-badge ${status.badgeClass}`;
+      badge.innerHTML = `
+        <span class="status-badge-dot">●</span>
+        <span class="status-badge-text">${status.statusText}</span>
+        <span class="status-badge-time">${status.timeText}</span>
+      `;
+    });
+
+    // 3. Highlight Current Day Row
+    const hoursRows = document.querySelectorAll('.hours-row');
+    hoursRows.forEach(row => {
+      const rowDay = parseInt(row.getAttribute('data-day'), 10);
+      if (rowDay === currentDayIndex) {
+        row.classList.add('active-today');
+      } else {
+        row.classList.remove('active-today');
+      }
+    });
+  }
+
+  updateHoursUI();
+  setInterval(updateHoursUI, 60000);
+
+  // 4. Viewport Observer for Animated Business Hours Cards
+  const animatedHoursCards = document.querySelectorAll('.hours-card-animated');
+  if (animatedHoursCards.length > 0) {
+    const hoursCardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    animatedHoursCards.forEach(card => hoursCardObserver.observe(card));
+  }
 });
